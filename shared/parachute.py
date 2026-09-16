@@ -255,7 +255,8 @@ def _apply_domain_guard(user_text: str, output: str) -> str:
     lowered = user_text.lower().strip()
     if any(word in lowered for word in ("clima", "tiempo", "cita", "calendar", "agendar", "reservar", "salto")):
         return output
-    if lowered in {"hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "como estas", "gracias", "adios"}:
+    smalltalk_vocabulary = {"hola", "buenas", "buenos", "dias", "tardes", "noches", "como", "estas", "gracias", "adios"}
+    if _normalize(lowered) and _normalize(lowered).issubset(smalltalk_vocabulary):
         return output
     faq_result = faq_tool(user_text)
     if faq_result.startswith("No encontré") or faq_result.startswith("No está disponible"):

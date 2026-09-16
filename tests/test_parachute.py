@@ -51,6 +51,7 @@ class ParachuteTests(unittest.TestCase):
   def test_domain_guard_rejects_unrelated_topics(self):
     self.assertIn("No encuentro información", parachute._apply_domain_guard("¿Cuándo debutó BabyMonster?", "respuesta inventada"))
     self.assertIn("100 kg", parachute._apply_domain_guard("¿Cuál es el peso máximo?", "respuesta inventada"))
+    self.assertEqual(parachute._apply_domain_guard("¿Cómo estás?", "saludo del modelo"), "saludo del modelo")
 
 if __name__ == "__main__":
   unittest.main()
