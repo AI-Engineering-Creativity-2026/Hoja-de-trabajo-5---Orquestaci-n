@@ -12,10 +12,12 @@
   </a>
 </p>
 
+<p align="center"><strong>▶️ ¡Denle clic al video para verlo en YouTube!</strong></p>
+
 <p align="center">
   <img src="assets/a1b3ca08-2d66-4a54-947d-67325b9a1f93.png" alt="Imagen" width="360">
   <img src="assets/kyafeet.jpg" alt="Imagen" width="360">
-  <img src="assets/jiyufeet.webp" alt="Imagen" width="360">
+  <img src="assets/jiyufeet.webp" alt="Imagen" width="540">
 </p>
 
 Implementación del mismo asistente de calendarización de saltos con tres arquitecturas:
