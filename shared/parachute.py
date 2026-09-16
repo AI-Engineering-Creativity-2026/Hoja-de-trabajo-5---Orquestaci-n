@@ -208,22 +208,70 @@ def _normalize(text: str) -> set[str]:
     text = unicodedata.normalize("NFKD", text.lower()).encode("ascii", "ignore").decode()
     return set(re.findall(r"[a-z0-9]{3,}", text))
 
+
+FAQ_STOPWORDS = {
+    "como", "cual", "cuales", "cuando", "cuanto", "cuantos", "donde", "hay",
+    "para", "pasa", "puedo", "que", "quien", "quienes", "tienen", "tiene",
+    "esta", "este", "del", "las", "los", "una", "uno", "por", "con",
+}
+
+
+def _content_words(text: str) -> set[str]:
+    return _normalize(text) - FAQ_STOPWORDS
+
 def faq_tool(question: str) -> str:
     """Busca la pregunta más parecida en el corpus FAQ de HDT4, sin inventar respuestas."""
     corpus_path = FAQ_PATH if FAQ_PATH.exists() else HDT4_FAQ_PATH
     if not corpus_path.exists():
         return "No está disponible el corpus FAQ de HDT4."
-    query_words = _normalize(question)
+    query_words = _content_words(question)
     blocks = [b for b in corpus_path.read_text(encoding="utf-8").split("------------------------------------------------------------") if "PREGUNTA:" in b]
     best, score = None, 0
     for block in blocks:
         question_match = re.search(r"PREGUNTA:\s*(.+)", block)
         answer_match = re.search(r"RESPUESTA:\s*(.+)", block)
         if question_match and answer_match:
-            current = len(query_words & _normalize(question_match.group(1)))
+            current = len(query_words & _content_words(question_match.group(1)))
             if current > score:
                 score, best = current, answer_match.group(1).strip()
     return best if best and score else "No encontré esa respuesta en el corpus FAQ de HDT4. Puedo ayudar a revisar clima y calendarización si indica una fecha YYYY-MM-DD."
+
+
+def _faq_is_missing(answer: str) -> bool:
+    return answer.startswith("No encontré") or answer.startswith("No está disponible")
+
+
+def _split_faq_questions(question: str) -> list[str]:
+    """Divide consultas compuestas para evaluar cada intención por separado."""
+    parts = [part.strip(" .,;!?¿¡") for part in re.split(r"\s+y\s+", question, flags=re.IGNORECASE)]
+    return [part for part in parts if part]
+
+
+def _answer_faq_questions(question: str) -> str | None:
+    """Responde solo con evidencia del corpus, siguiendo el flujo de HDT4.
+
+    Si una consulta contiene varias intenciones, una coincidencia parcial no
+    autoriza a contestar las partes que no están respaldadas por las FAQs.
+    """
+    answers: list[str] = []
+    missing: list[str] = []
+    for part in _split_faq_questions(question):
+        # En el corpus, la ubicación se formula como “zona de salto”,
+        # mientras los usuarios suelen preguntar “dónde es el evento”.
+        if {"donde", "evento"}.issubset(_normalize(part)):
+            answer = faq_tool("¿Dónde se ubica la zona de salto?")
+        else:
+            answer = faq_tool(part)
+        if _faq_is_missing(answer):
+            missing.append(part)
+        else:
+            answers.append(answer)
+    if not answers:
+        return None
+    if missing:
+        unsupported = "; ".join(missing)
+        answers.insert(0, f"No encuentro información en las FAQs sobre: {unsupported}.")
+    return "\n\n".join(answers)
 
 
 def extract_date(text: str) -> str | None:
@@ -258,8 +306,8 @@ def _apply_domain_guard(user_text: str, output: str) -> str:
     smalltalk_vocabulary = {"hola", "buenas", "buenos", "dias", "tardes", "noches", "como", "estas", "gracias", "adios"}
     if _normalize(lowered) and _normalize(lowered).issubset(smalltalk_vocabulary):
         return output
-    faq_result = faq_tool(user_text)
-    if faq_result.startswith("No encontré") or faq_result.startswith("No está disponible"):
+    faq_result = _answer_faq_questions(user_text)
+    if faq_result is None:
         return "No encuentro información sobre ese tema en las FAQs de Parachute S.A. Solo puedo ayudar con las actividades, requisitos y citas de Parachute S.A."
     # La respuesta de la FAQ local tiene prioridad sobre una aclaración o
     # conocimiento general generado por el modelo.

@@ -53,5 +53,14 @@ class ParachuteTests(unittest.TestCase):
     self.assertIn("100 kg", parachute._apply_domain_guard("¿Cuál es el peso máximo?", "respuesta inventada"))
     self.assertEqual(parachute._apply_domain_guard("¿Cómo estás?", "saludo del modelo"), "saludo del modelo")
 
+  def test_domain_guard_evaluates_compound_questions_independently(self):
+    answer = parachute._apply_domain_guard(
+      "¿Quién es Ahyeon y dónde es el evento?",
+      "respuesta inventada",
+    )
+    self.assertIn("Ahyeon", answer)
+    self.assertIn("zona de salto", answer)
+    self.assertNotIn("¿Quién toma la decisión final", answer)
+
 if __name__ == "__main__":
   unittest.main()
