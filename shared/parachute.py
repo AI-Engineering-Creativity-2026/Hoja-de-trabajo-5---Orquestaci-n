@@ -254,7 +254,7 @@ def _apply_calendar_guard(user_text: str, output: str) -> str:
         any(word in lowered for word in ("cita", "calendar", "agendar", "reservar"))
         or any(phrase in lowered for phrase in (
             "esa fecha", "esa cita", "quiero la fecha", "la quiero para",
-            "lo quiero para", "quiero para",
+            "lo quiero para", "quiero para", "para esta fecha", "en esta fecha",
         ))
     )
     if not is_calendar:

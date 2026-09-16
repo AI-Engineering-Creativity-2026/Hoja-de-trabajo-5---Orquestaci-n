@@ -54,6 +54,12 @@ class ParachuteTests(unittest.TestCase):
       answer = parachute._apply_calendar_guard("la quiero para el 2026-09-17", "No puedo responder esa pregunta")
     self.assertIn("Cita calendarizada", answer)
 
+  def test_this_date_phrase_is_calendar_request(self):
+    unsafe = evaluate_weather(report(precipitation_mm=1))
+    with patch.object(parachute, "fetch_weather", return_value=unsafe):
+      answer = parachute._apply_calendar_guard("2026-09-17 para esta fecha", "No puedo responder esa pregunta")
+    self.assertIn("NO SEGURO / PROHIBIDO", answer)
+
   def test_schedule_requires_approved_weather(self):
     approved = evaluate_weather(report())
     unsafe = evaluate_weather(report(precipitation_mm=1))
