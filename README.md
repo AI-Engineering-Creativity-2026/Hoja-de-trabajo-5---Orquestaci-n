@@ -1,21 +1,21 @@
 # HDT5 — Orquestación de agentes para Parachute S.A.
 
 <p align="center">
-  <img src="assets/a1b3ca08-2d66-4a54-947d-67325b9a1f93.png" alt="Imagen" width="420">
+  <img src="assets/a1b3ca08-2d66-4a54-947d-67325b9a1f93.png" alt="Imagen" width="600">
 </p>
 
 <h1 align="center">🎵🎵🎵 RECOMENDACIÓN MUSICAL 🎵🎵🎵</h1>
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=UsbRoaH6y-Q">
-    <img src="https://img.youtube.com/vi/UsbRoaH6y-Q/maxresdefault.jpg" alt="Recomendación musical" width="760">
+    <img src="https://img.youtube.com/vi/UsbRoaH6y-Q/maxresdefault.jpg" alt="Recomendación musical" width="900">
   </a>
 </p>
 
 <p align="center">
-  <img src="assets/a1b3ca08-2d66-4a54-947d-67325b9a1f93.png" alt="Imagen" width="260">
-  <img src="assets/kyafeet.jpg" alt="Imagen" width="260">
-  <img src="assets/jiyufeet.webp" alt="Imagen" width="260">
+  <img src="assets/a1b3ca08-2d66-4a54-947d-67325b9a1f93.png" alt="Imagen" width="360">
+  <img src="assets/kyafeet.jpg" alt="Imagen" width="360">
+  <img src="assets/jiyufeet.webp" alt="Imagen" width="360">
 </p>
 
 Implementación del mismo asistente de calendarización de saltos con tres arquitecturas:
