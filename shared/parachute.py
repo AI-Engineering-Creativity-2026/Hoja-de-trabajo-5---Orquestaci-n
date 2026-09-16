@@ -241,7 +241,10 @@ def _apply_calendar_guard(user_text: str, output: str) -> str:
     lowered = user_text.lower()
     is_calendar = date and (
         any(word in lowered for word in ("cita", "calendar", "agendar", "reservar"))
-        or any(phrase in lowered for phrase in ("esa fecha", "esa cita", "quiero la fecha"))
+        or any(phrase in lowered for phrase in (
+            "esa fecha", "esa cita", "quiero la fecha", "la quiero para",
+            "lo quiero para", "quiero para",
+        ))
     )
     if not is_calendar:
         return output
@@ -308,6 +311,20 @@ def run_chat(agent) -> None:
             if not user_text:
                 continue
             try:
+                # Conserva las respuestas conversacionales deterministas de HDT4
+                # también en el modo interactivo.
+                source = str(HDT4_SRC_PATH)
+                if source not in sys.path:
+                    sys.path.insert(0, source)
+                from agent import get_conversational_response
+                conversational = get_conversational_response(user_text)
+                if conversational is not None:
+                    history.extend([
+                        {"role": "user", "content": user_text},
+                        {"role": "assistant", "content": conversational},
+                    ])
+                    print(f"Agente: {conversational}")
+                    continue
                 result = Runner.run_sync(agent, history + [{"role": "user", "content": user_text}])
                 history = result.to_input_list()
                 output = _apply_calendar_guard(user_text, result.final_output or "")
