@@ -38,6 +38,14 @@ class ParachuteTests(unittest.TestCase):
     with self.assertRaises(ValueError): validate_date("2026-09-15", today)
     with self.assertRaises(ValueError): validate_date("2026-99-99", today)
 
+  def test_date_continuation_is_calendar_request(self):
+    safe = evaluate_weather(report())
+    with patch.object(parachute, "fetch_weather", return_value=safe), patch.object(
+      parachute, "schedule_tool", return_value='{"scheduled": true, "message": "Cita calendarizada"}'
+    ):
+      answer = parachute._apply_calendar_guard("2026-09-17 quiero esa fecha", "No puedo responder esa pregunta")
+    self.assertIn("Cita calendarizada", answer)
+
   def test_schedule_requires_approved_weather(self):
     approved = evaluate_weather(report())
     unsafe = evaluate_weather(report(precipitation_mm=1))

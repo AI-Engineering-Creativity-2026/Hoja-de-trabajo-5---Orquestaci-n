@@ -238,7 +238,11 @@ def extract_date(text: str) -> str | None:
 
 def _apply_calendar_guard(user_text: str, output: str) -> str:
     date = extract_date(user_text)
-    is_calendar = date and any(word in user_text.lower() for word in ("cita", "calendar", "agendar", "reservar"))
+    lowered = user_text.lower()
+    is_calendar = date and (
+        any(word in lowered for word in ("cita", "calendar", "agendar", "reservar"))
+        or any(phrase in lowered for phrase in ("esa fecha", "esa cita", "quiero la fecha"))
+    )
     if not is_calendar:
         return output
     # Postcondición de seguridad: el texto del LLM nunca puede contradecir
