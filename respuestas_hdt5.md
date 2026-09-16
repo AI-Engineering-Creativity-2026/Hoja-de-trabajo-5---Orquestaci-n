@@ -8,7 +8,7 @@ Se construyeron tres programas que resuelven la misma solicitud: responder FAQs 
 
 La calendarización se materializa mediante `schedule_tool`, que vuelve a consultar Open-Meteo como barrera de seguridad, registra la cita en `data/citas.json` con estado pendiente de confirmación del instructor y nunca confirma automáticamente una operación de salto.
 
-La integración está centralizada en `shared/parachute.py`. Esta capa reutiliza el corpus FAQ de HDT4, valida fechas, consulta la opción `daily` de Open-Meteo y aplica los umbrales deterministas:
+La integración está centralizada en `shared/parachute.py`. Esta capa incluye y reutiliza el corpus FAQ de HDT4, valida fechas, consulta la opción `daily` de Open-Meteo y aplica los umbrales deterministas:
 
 - viento superficial: ideal menor a 20 km/h, marginal de 20 a 28 km/h y prohibido sobre 28 km/h;
 - ráfagas sobre 35 km/h: prohibido;

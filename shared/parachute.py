@@ -200,7 +200,8 @@ def schedule_tool(date: str) -> str:
         return json.dumps({"scheduled": False, "error": str(exc)}, ensure_ascii=False)
 
 
-FAQ_PATH = Path(__file__).resolve().parents[2] / "ai-function-calls" / "data" / "Corpus_FAQs_Parachute_SA_2026.txt"
+FAQ_PATH = PROJECT_ROOT / "data" / "Corpus_FAQs_Parachute_SA_2026.txt"
+HDT4_FAQ_PATH = Path(__file__).resolve().parents[2] / "ai-function-calls" / "data" / "Corpus_FAQs_Parachute_SA_2026.txt"
 APPOINTMENTS_PATH = Path(__file__).resolve().parents[1] / "data" / "citas.json"
 
 def _normalize(text: str) -> set[str]:
@@ -209,10 +210,11 @@ def _normalize(text: str) -> set[str]:
 
 def faq_tool(question: str) -> str:
     """Busca la pregunta más parecida en el corpus FAQ de HDT4, sin inventar respuestas."""
-    if not FAQ_PATH.exists():
+    corpus_path = FAQ_PATH if FAQ_PATH.exists() else HDT4_FAQ_PATH
+    if not corpus_path.exists():
         return "No está disponible el corpus FAQ de HDT4."
     query_words = _normalize(question)
-    blocks = [b for b in FAQ_PATH.read_text(encoding="utf-8").split("------------------------------------------------------------") if "PREGUNTA:" in b]
+    blocks = [b for b in corpus_path.read_text(encoding="utf-8").split("------------------------------------------------------------") if "PREGUNTA:" in b]
     best, score = None, 0
     for block in blocks:
         question_match = re.search(r"PREGUNTA:\s*(.+)", block)

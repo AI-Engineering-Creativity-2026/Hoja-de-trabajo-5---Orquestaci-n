@@ -3,7 +3,7 @@
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 2 0 obj
-<< /Length 3154 >>
+<< /Length 3144 >>
 stream
 BT
 /F1 10 Tf
@@ -41,9 +41,11 @@ BT
 /F1 10 Tf
 () Tj T*
 /F1 10 Tf
-(La integración está centralizada en shared/parachute.py. Esta capa reutiliza el corpus FAQ de) Tj T*
+(La integración está centralizada en shared/parachute.py. Esta capa incluye y reutiliza el corpus) Tj T*
 /F1 10 Tf
-(HDT4, valida fechas, consulta la opción daily de Open-Meteo y aplica los umbrales deterministas:) Tj T*
+(FAQ de HDT4, valida fechas, consulta la opción daily de Open-Meteo y aplica los umbrales) Tj T*
+/F1 10 Tf
+(deterministas:) Tj T*
 /F1 10 Tf
 () Tj T*
 /F1 10 Tf
@@ -106,9 +108,6 @@ BT
 /F1 10 Tf
 () Tj T*
 /F1 10 Tf
-/F1 12 Tf
-(Preguntas) Tj T*
-/F1 10 Tf
 ET
 endstream
 endobj
@@ -116,12 +115,15 @@ endobj
 << /Type /Page /Parent 6 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
 endobj
 4 0 obj
-<< /Length 2812 >>
+<< /Length 2850 >>
 stream
 BT
 /F1 10 Tf
 50 742 Td
 14 TL
+/F1 12 Tf
+(Preguntas) Tj T*
+/F1 10 Tf
 () Tj T*
 /F1 10 Tf
 (¿Qué arquitectura o arquitecturas resuelven mejor este problema? ¿Por qué?) Tj T*
@@ -218,13 +220,13 @@ xref
 0000000000 65535 f 
 0000000009 00000 n 
 0000000079 00000 n 
-0000003285 00000 n 
-0000003411 00000 n 
-0000006275 00000 n 
-0000006401 00000 n 
-0000006464 00000 n 
+0000003275 00000 n 
+0000003401 00000 n 
+0000006303 00000 n 
+0000006429 00000 n 
+0000006492 00000 n 
 trailer
 << /Size 8 /Root 7 0 R >>
 startxref
-6513
+6541
 %%EOF
