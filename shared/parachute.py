@@ -336,6 +336,15 @@ def run_chat(agent) -> None:
                     ])
                     print(f"Agente: {conversational}")
                     continue
+                # Una fecha acompañada de una continuación de reserva se rutea
+                # directamente al flujo climático, sin depender de la decisión
+                # probabilística del supervisor.
+                if extract_date(user_text) and any(phrase in user_text.lower() for phrase in (
+                    "esa fecha", "esa cita", "la quiero para", "lo quiero para",
+                    "quiero para", "para esta fecha", "en esta fecha",
+                )):
+                    print(f"Agente: {_apply_calendar_guard(user_text, '')}")
+                    continue
                 result = Runner.run_sync(agent, history + [{"role": "user", "content": user_text}])
                 history = result.to_input_list()
                 output = _apply_calendar_guard(user_text, result.final_output or "")
