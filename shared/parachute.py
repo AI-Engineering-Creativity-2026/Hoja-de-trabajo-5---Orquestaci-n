@@ -260,7 +260,9 @@ def _apply_domain_guard(user_text: str, output: str) -> str:
     faq_result = faq_tool(user_text)
     if faq_result.startswith("No encontré") or faq_result.startswith("No está disponible"):
         return "No encuentro información sobre ese tema en las FAQs de Parachute S.A. Solo puedo ayudar con las actividades, requisitos y citas de Parachute S.A."
-    return output
+    # La respuesta de la FAQ local tiene prioridad sobre una aclaración o
+    # conocimiento general generado por el modelo.
+    return faq_result
 
 
 def run_agent(agent, user_text: str) -> str:
