@@ -211,78 +211,24 @@ def _normalize(text: str) -> set[str]:
     return set(re.findall(r"[a-z0-9]{3,}", text))
 
 
-FAQ_STOPWORDS = {
-    "como", "cual", "cuales", "cuando", "cuanto", "cuantos", "donde", "hay",
-    "para", "pasa", "puedo", "que", "quien", "quienes", "tienen", "tiene",
-    "esta", "este", "del", "las", "los", "una", "uno", "por", "con",
-}
-
-
-def _content_words(text: str) -> set[str]:
-    return _normalize(text) - FAQ_STOPWORDS
-
-def _hdt4_search_knowledge_base(question: str) -> list[dict]:
-    """Invoca literalmente la búsqueda vectorial implementada en HDT4."""
+def _hdt4_faq_answer(question: str) -> str:
+    """Invoca literalmente el flujo run_agent_turn de HDT4."""
     if not HDT4_SRC_PATH.exists():
         raise FileNotFoundError("No está disponible la implementación de búsqueda de HDT4.")
     source = str(HDT4_SRC_PATH)
     if source not in sys.path:
         sys.path.insert(0, source)
-    from database import search_knowledge_base
-    return search_knowledge_base(query=question)
+    from agent import run_agent_turn
+    from groq_client import get_groq_client
+    return run_agent_turn(get_groq_client(), [], question)
 
 
 def faq_tool(question: str) -> str:
-    """Busca FAQs usando exactamente el RAG vectorial de HDT4."""
+    """Responde usando exactamente el agente conversacional de FAQs de HDT4."""
     try:
-        results = _hdt4_search_knowledge_base(question)
+        return _hdt4_faq_answer(question)
     except Exception as exc:
         return f"No está disponible la búsqueda FAQ de HDT4: {exc}"
-    if not results:
-        return "No encontré esa respuesta en el corpus FAQ de HDT4."
-    answers = []
-    for result in results:
-        answer = result.get("respuesta")
-        if answer and answer not in answers:
-            answers.append(answer)
-    return "\n\n".join(answers) or "No encontré esa respuesta en el corpus FAQ de HDT4."
-
-
-def _faq_is_missing(answer: str) -> bool:
-    return answer.startswith("No encontré") or answer.startswith("No está disponible")
-
-
-def _split_faq_questions(question: str) -> list[str]:
-    """Divide consultas compuestas para evaluar cada intención por separado."""
-    parts = [part.strip(" .,;!?¿¡") for part in re.split(r"\s+y\s+", question, flags=re.IGNORECASE)]
-    return [part for part in parts if part]
-
-
-def _answer_faq_questions(question: str) -> str | None:
-    """Responde solo con evidencia del corpus, siguiendo el flujo de HDT4.
-
-    Si una consulta contiene varias intenciones, una coincidencia parcial no
-    autoriza a contestar las partes que no están respaldadas por las FAQs.
-    """
-    answers: list[str] = []
-    missing: list[str] = []
-    for part in _split_faq_questions(question):
-        # En el corpus, la ubicación se formula como “zona de salto”,
-        # mientras los usuarios suelen preguntar “dónde es el evento”.
-        if {"donde", "evento"}.issubset(_normalize(part)):
-            answer = faq_tool("¿Dónde se ubica la zona de salto?")
-        else:
-            answer = faq_tool(part)
-        if _faq_is_missing(answer):
-            missing.append(part)
-        else:
-            answers.append(answer)
-    if not answers:
-        return None
-    if missing:
-        unsupported = "; ".join(missing)
-        answers.insert(0, f"No encuentro información en las FAQs sobre: {unsupported}.")
-    return "\n\n".join(answers)
 
 
 def extract_date(text: str) -> str | None:
@@ -317,12 +263,9 @@ def _apply_domain_guard(user_text: str, output: str) -> str:
     smalltalk_vocabulary = {"hola", "buenas", "buenos", "dias", "tardes", "noches", "como", "estas", "gracias", "adios"}
     if _normalize(lowered) and _normalize(lowered).issubset(smalltalk_vocabulary):
         return output
-    faq_result = _answer_faq_questions(user_text)
-    if faq_result is None:
-        return "No encuentro información sobre ese tema en las FAQs de Parachute S.A. Solo puedo ayudar con las actividades, requisitos y citas de Parachute S.A."
-    # La respuesta de la FAQ local tiene prioridad sobre una aclaración o
-    # conocimiento general generado por el modelo.
-    return faq_result
+    # HDT4 divide preguntas, consulta cada parte y genera una respuesta
+    # fundamentada. No concatenamos ni reinterpretamos sus resultados.
+    return faq_tool(user_text)
 
 
 def run_agent(agent, user_text: str) -> str:
