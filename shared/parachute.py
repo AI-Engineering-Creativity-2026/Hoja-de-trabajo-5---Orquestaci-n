@@ -4,6 +4,7 @@ import datetime as dt
 import json
 import os
 import re
+import sys
 import urllib.parse
 import urllib.request
 import time
@@ -202,6 +203,7 @@ def schedule_tool(date: str) -> str:
 
 FAQ_PATH = PROJECT_ROOT / "data" / "Corpus_FAQs_Parachute_SA_2026.txt"
 HDT4_FAQ_PATH = Path(__file__).resolve().parents[2] / "ai-function-calls" / "data" / "Corpus_FAQs_Parachute_SA_2026.txt"
+HDT4_SRC_PATH = Path(__file__).resolve().parents[1] / "hdt4" / "src"
 APPOINTMENTS_PATH = Path(__file__).resolve().parents[1] / "data" / "citas.json"
 
 def _normalize(text: str) -> set[str]:
@@ -219,22 +221,31 @@ FAQ_STOPWORDS = {
 def _content_words(text: str) -> set[str]:
     return _normalize(text) - FAQ_STOPWORDS
 
+def _hdt4_search_knowledge_base(question: str) -> list[dict]:
+    """Invoca literalmente la búsqueda vectorial implementada en HDT4."""
+    if not HDT4_SRC_PATH.exists():
+        raise FileNotFoundError("No está disponible la implementación de búsqueda de HDT4.")
+    source = str(HDT4_SRC_PATH)
+    if source not in sys.path:
+        sys.path.insert(0, source)
+    from database import search_knowledge_base
+    return search_knowledge_base(query=question)
+
+
 def faq_tool(question: str) -> str:
-    """Busca la pregunta más parecida en el corpus FAQ de HDT4, sin inventar respuestas."""
-    corpus_path = FAQ_PATH if FAQ_PATH.exists() else HDT4_FAQ_PATH
-    if not corpus_path.exists():
-        return "No está disponible el corpus FAQ de HDT4."
-    query_words = _content_words(question)
-    blocks = [b for b in corpus_path.read_text(encoding="utf-8").split("------------------------------------------------------------") if "PREGUNTA:" in b]
-    best, score = None, 0
-    for block in blocks:
-        question_match = re.search(r"PREGUNTA:\s*(.+)", block)
-        answer_match = re.search(r"RESPUESTA:\s*(.+)", block)
-        if question_match and answer_match:
-            current = len(query_words & _content_words(question_match.group(1)))
-            if current > score:
-                score, best = current, answer_match.group(1).strip()
-    return best if best and score else "No encontré esa respuesta en el corpus FAQ de HDT4. Puedo ayudar a revisar clima y calendarización si indica una fecha YYYY-MM-DD."
+    """Busca FAQs usando exactamente el RAG vectorial de HDT4."""
+    try:
+        results = _hdt4_search_knowledge_base(question)
+    except Exception as exc:
+        return f"No está disponible la búsqueda FAQ de HDT4: {exc}"
+    if not results:
+        return "No encontré esa respuesta en el corpus FAQ de HDT4."
+    answers = []
+    for result in results:
+        answer = result.get("respuesta")
+        if answer and answer not in answers:
+            answers.append(answer)
+    return "\n\n".join(answers) or "No encontré esa respuesta en el corpus FAQ de HDT4."
 
 
 def _faq_is_missing(answer: str) -> bool:
@@ -317,6 +328,18 @@ def _apply_domain_guard(user_text: str, output: str) -> str:
 def run_agent(agent, user_text: str) -> str:
     from agents import Runner
     try:
+        # HDT4 definía respuestas deterministas para cortesía; se conserva ese
+        # comportamiento antes de invocar al modelo de orquestación.
+        source = str(HDT4_SRC_PATH)
+        if source not in sys.path:
+            sys.path.insert(0, source)
+        try:
+            from agent import get_conversational_response
+            conversational = get_conversational_response(user_text)
+        except ImportError:
+            conversational = None
+        if conversational is not None:
+            return conversational
         output = Runner.run_sync(agent, user_text).final_output or ""
         output = _apply_calendar_guard(user_text, output)
         return _apply_domain_guard(user_text, output)

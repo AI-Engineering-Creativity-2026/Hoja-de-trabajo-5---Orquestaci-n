@@ -49,15 +49,25 @@ class ParachuteTests(unittest.TestCase):
     test_file.unlink(missing_ok=True)
 
   def test_domain_guard_rejects_unrelated_topics(self):
-    self.assertIn("No encuentro información", parachute._apply_domain_guard("¿Cuándo debutó BabyMonster?", "respuesta inventada"))
-    self.assertIn("100 kg", parachute._apply_domain_guard("¿Cuál es el peso máximo?", "respuesta inventada"))
+    def fake_search(query):
+      if "peso" in query.lower():
+        return [{"respuesta": "El límite de peso máximo estricto es de 100 kg."}]
+      return []
+    with patch.object(parachute, "_hdt4_search_knowledge_base", side_effect=fake_search):
+      self.assertIn("No encuentro información", parachute._apply_domain_guard("¿Cuándo debutó BabyMonster?", "respuesta inventada"))
+      self.assertIn("100 kg", parachute._apply_domain_guard("¿Cuál es el peso máximo?", "respuesta inventada"))
     self.assertEqual(parachute._apply_domain_guard("¿Cómo estás?", "saludo del modelo"), "saludo del modelo")
 
   def test_domain_guard_evaluates_compound_questions_independently(self):
-    answer = parachute._apply_domain_guard(
-      "¿Quién es Ahyeon y dónde es el evento?",
-      "respuesta inventada",
-    )
+    def fake_search(query):
+      if "ubic" in query.lower() or "zona" in query.lower():
+        return [{"respuesta": "La zona de salto se ubica en el aeródromo del evento."}]
+      return []
+    with patch.object(parachute, "_hdt4_search_knowledge_base", side_effect=fake_search):
+      answer = parachute._apply_domain_guard(
+        "¿Quién es Ahyeon y dónde es el evento?",
+        "respuesta inventada",
+      )
     self.assertIn("Ahyeon", answer)
     self.assertIn("zona de salto", answer)
     self.assertNotIn("¿Quién toma la decisión final", answer)

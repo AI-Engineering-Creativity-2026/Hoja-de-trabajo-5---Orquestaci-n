@@ -15,6 +15,8 @@ source ../ai-function-calls/.venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 # Edita .env y coloca tu GROQ_API_KEY de HDT4
+docker compose -f hdt4/docker-compose.yml --env-file .env up -d
+../ai-function-calls/.venv/bin/python hdt4/src/load_corpus.py --corpus data/Corpus_FAQs_Parachute_SA_2026.txt
 python centralizada.py "Quiero saltar el 2026-09-20"
 python jerarquica.py "¿Puedo agendar un salto el 2026-09-20?"
 python descentralizada.py "¿Qué incluye una cita tándem?"
@@ -22,7 +24,7 @@ python descentralizada.py "¿Qué incluye una cita tándem?"
 
 Para probar el mismo entorno virtual sin depender de que `python` global tenga las dependencias, también puedes ejecutar directamente `../ai-function-calls/.venv/bin/python centralizada.py ...`.
 
-Se reutiliza el entorno virtual de HDT4 (`../ai-function-calls/.venv`) y se incluye una copia del corpus de FAQs en `data/Corpus_FAQs_Parachute_SA_2026.txt`; la ruta de HDT4 queda como respaldo local. La integración usa la documentación oficial de [Open-Meteo](https://open-meteo.com/).
+Se reutiliza el entorno virtual de HDT4 (`../ai-function-calls/.venv`) y se incluye una copia literal de su implementación en `hdt4/src/`, junto con PostgreSQL/pgvector, el cargador y el esquema. Las FAQs de las tres arquitecturas llaman al mismo `search_knowledge_base` vectorial de HDT4; no se mantiene un buscador alternativo por coincidencia de palabras. La integración usa la documentación oficial de [Open-Meteo](https://open-meteo.com/).
 
 Para Groq se usa `openai/gpt-oss-20b`, que está disponible en el entorno de HDT4. El código envía `include_reasoning=false` para separar el razonamiento de las llamadas a tools.
 
