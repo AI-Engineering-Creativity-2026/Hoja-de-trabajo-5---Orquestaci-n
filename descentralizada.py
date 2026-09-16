@@ -17,7 +17,7 @@ def acknowledge_handoff(_context, _payload):
     return None
 
 weather_agent = Agent(name="WeatherAgent", instructions="Eres especialista independiente en clima. Consulta weather_tool; informa datos, decisión y razones.", tools=[WEATHER_TOOL], model=MODEL, model_settings=SETTINGS)
-faq_agent = Agent(name="FAQAgent", instructions="Eres especialista independiente en FAQs. Usa faq_tool y responde en español.", tools=[FAQ_TOOL], model=MODEL, model_settings=SETTINGS)
+faq_agent = Agent(name="FAQAgent", instructions="Eres especialista independiente en FAQs. Usa faq_tool y responde en español. Si no hay coincidencia, rechaza temas ajenos a Parachute y nunca uses conocimiento general.", tools=[FAQ_TOOL], model=MODEL, model_settings=SETTINGS)
 calendar_agent = Agent(name="CalendarAgent", instructions="Eres especialista independiente en citas. Usa schedule_tool; la herramienta vuelve a consultar Open-Meteo y bloquea condiciones inseguras. Nunca confirmes una cita si devuelve scheduled=false.", tools=[SCHEDULE_TOOL], model=MODEL, model_settings=SETTINGS)
 intake_agent = Agent(
     name="IntakeAgent",

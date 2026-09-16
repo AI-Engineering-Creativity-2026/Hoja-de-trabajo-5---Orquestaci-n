@@ -48,5 +48,9 @@ class ParachuteTests(unittest.TestCase):
       self.assertIn('"scheduled": false', schedule_tool("2026-09-20"))
     test_file.unlink(missing_ok=True)
 
+  def test_domain_guard_rejects_unrelated_topics(self):
+    self.assertIn("No encuentro información", parachute._apply_domain_guard("¿Cuándo debutó BabyMonster?", "respuesta inventada"))
+    self.assertEqual(parachute._apply_domain_guard("¿Cuál es el peso máximo?", "respuesta FAQ"), "respuesta FAQ")
+
 if __name__ == "__main__":
   unittest.main()

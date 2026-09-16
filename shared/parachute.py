@@ -250,11 +250,25 @@ def _apply_calendar_guard(user_text: str, output: str) -> str:
     return output
 
 
+def _apply_domain_guard(user_text: str, output: str) -> str:
+    """Impide que el modelo responda conocimiento general fuera de Parachute/FAQs."""
+    lowered = user_text.lower().strip()
+    if any(word in lowered for word in ("clima", "tiempo", "cita", "calendar", "agendar", "reservar", "salto")):
+        return output
+    if lowered in {"hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "como estas", "gracias", "adios"}:
+        return output
+    faq_result = faq_tool(user_text)
+    if faq_result.startswith("No encontré") or faq_result.startswith("No está disponible"):
+        return "No encuentro información sobre ese tema en las FAQs de Parachute S.A. Solo puedo ayudar con las actividades, requisitos y citas de Parachute S.A."
+    return output
+
+
 def run_agent(agent, user_text: str) -> str:
     from agents import Runner
     try:
         output = Runner.run_sync(agent, user_text).final_output or ""
-        return _apply_calendar_guard(user_text, output)
+        output = _apply_calendar_guard(user_text, output)
+        return _apply_domain_guard(user_text, output)
     except Exception as exc:
         return f"No se pudo completar la solicitud. Verifica el modelo y la conexión del proveedor: {exc}"
 
@@ -275,7 +289,8 @@ def run_chat(agent) -> None:
             try:
                 result = Runner.run_sync(agent, history + [{"role": "user", "content": user_text}])
                 history = result.to_input_list()
-                print(f"Agente: {_apply_calendar_guard(user_text, result.final_output or '')}")
+                output = _apply_calendar_guard(user_text, result.final_output or "")
+                print(f"Agente: {_apply_domain_guard(user_text, output)}")
             except Exception as exc:
                 print(f"Agente: No se pudo completar la solicitud: {exc}")
     except (EOFError, KeyboardInterrupt):

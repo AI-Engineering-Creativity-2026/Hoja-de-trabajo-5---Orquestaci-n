@@ -7,7 +7,7 @@ MODEL = agent_model()
 SETTINGS = agent_model_settings()
 WEATHER_TOOL, FAQ_TOOL, SCHEDULE_TOOL = function_tool(weather_tool), function_tool(faq_tool), function_tool(schedule_tool)
 weather_worker = Agent(name="WeatherWorker", instructions="Usa weather_tool para consultar y evaluar una fecha. Nunca inventes datos.", tools=[WEATHER_TOOL], model=MODEL, model_settings=SETTINGS)
-faq_worker = Agent(name="FAQWorker", instructions="Responde exclusivamente usando faq_tool. Sé claro y breve.", tools=[FAQ_TOOL], model=MODEL, model_settings=SETTINGS)
+faq_worker = Agent(name="FAQWorker", instructions="Responde exclusivamente usando faq_tool. Si no hay coincidencia, di que no existe información en las FAQs. Nunca uses conocimiento general ni respondas temas ajenos a Parachute.", tools=[FAQ_TOOL], model=MODEL, model_settings=SETTINGS)
 calendar_worker = Agent(name="CalendarWorker", instructions="Usa schedule_tool para que la propia integración vuelva a consultar el clima. Nunca inventes ni reutilices un reporte.", tools=[SCHEDULE_TOOL], model=MODEL, model_settings=SETTINGS)
 supervisor = Agent(
     name="SupervisorCentral",
