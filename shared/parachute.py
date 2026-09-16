@@ -220,7 +220,18 @@ def _hdt4_faq_answer(question: str) -> str:
         sys.path.insert(0, source)
     from agent import run_agent_turn
     from groq_client import get_groq_client
-    return run_agent_turn(get_groq_client(), [], question)
+    client = get_groq_client()
+    answer = run_agent_turn(client, [], question)
+    no_answer = "Lo siento, no puedo responder esa pregunta con la información disponible"
+    # Fallback de orquestación: HDT4 sigue siendo quien busca y redacta cada
+    # respuesta; solo repetimos su flujo por cláusula si el separador original
+    # no detectó una consulta compuesta.
+    if no_answer in answer and re.search(r"\s+y\s+", question, flags=re.IGNORECASE):
+        parts = [part.strip(" .,;!?¿¡") for part in re.split(r"\s+y\s+", question, flags=re.IGNORECASE)]
+        independent = [run_agent_turn(client, [], part) for part in parts if part]
+        if any(no_answer not in item for item in independent):
+            return "\n\n".join(independent)
+    return answer
 
 
 def faq_tool(question: str) -> str:
