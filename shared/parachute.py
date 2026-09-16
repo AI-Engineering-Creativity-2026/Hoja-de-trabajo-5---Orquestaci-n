@@ -231,24 +231,52 @@ def extract_date(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+def _apply_calendar_guard(user_text: str, output: str) -> str:
+    date = extract_date(user_text)
+    is_calendar = date and any(word in user_text.lower() for word in ("cita", "calendar", "agendar", "reservar"))
+    if not is_calendar:
+        return output
+    # Postcondición de seguridad: el texto del LLM nunca puede contradecir
+    # el clima real consultado por la integración compartida.
+    report = fetch_weather(date)
+    metrics = (f"Temperatura: {report.temperature_c} °C; precipitación: {report.precipitation_mm} mm; "
+               f"nubes: {report.cloud_cover_pct}%; visibilidad: {report.visibility_m} m; "
+               f"viento: {report.wind_speed_kmh} km/h; ráfagas: {report.wind_gust_kmh} km/h.")
+    if report.decision == "NO SEGURO / PROHIBIDO":
+        return f"Decisión: NO SEGURO / PROHIBIDO.\n{metrics}\nLa cita no fue calendarizada. Razones: {' '.join(report.reasons)}"
+    if not output.strip() or "no puedo" in output.lower() or "no dispongo" in output.lower():
+        result = json.loads(schedule_tool(date))
+        return f"{metrics}\n{result.get('message', 'Resultado de calendarización.') if result.get('scheduled') else result.get('error')}"
+    return output
+
+
 def run_agent(agent, user_text: str) -> str:
     from agents import Runner
     try:
         output = Runner.run_sync(agent, user_text).final_output or ""
-        date = extract_date(user_text)
-        is_calendar = date and any(word in user_text.lower() for word in ("cita", "calendar", "agendar", "reservar"))
-        if is_calendar:
-            # Postcondición de seguridad: el texto del LLM nunca puede contradecir
-            # el clima real consultado por la integración compartida.
-            report = fetch_weather(date)
-            metrics = (f"Temperatura: {report.temperature_c} °C; precipitación: {report.precipitation_mm} mm; "
-                       f"nubes: {report.cloud_cover_pct}%; visibilidad: {report.visibility_m} m; "
-                       f"viento: {report.wind_speed_kmh} km/h; ráfagas: {report.wind_gust_kmh} km/h.")
-            if report.decision == "NO SEGURO / PROHIBIDO":
-                return f"Decisión: NO SEGURO / PROHIBIDO.\n{metrics}\nLa cita no fue calendarizada. Razones: {' '.join(report.reasons)}"
-            if not output.strip() or "no puedo" in output.lower() or "no dispongo" in output.lower():
-                result = json.loads(schedule_tool(date, json.dumps(asdict(report), ensure_ascii=False)))
-                return f"{metrics}\n{result.get('message', 'Resultado de calendarización.') if result.get('scheduled') else result.get('error')}"
-        return output
+        return _apply_calendar_guard(user_text, output)
     except Exception as exc:
         return f"No se pudo completar la solicitud. Verifica el modelo y la conexión del proveedor: {exc}"
+
+
+def run_chat(agent) -> None:
+    """Ejecuta una sesión multi-turno conservando el historial del agente."""
+    from agents import Runner
+    history = []
+    print("Chat iniciado. Escribe 'salir' para terminar.")
+    try:
+        while True:
+            user_text = input("Tú: ").strip()
+            if user_text.lower() in {"salir", "exit", "quit"}:
+                print("Sesión finalizada.")
+                return
+            if not user_text:
+                continue
+            try:
+                result = Runner.run_sync(agent, history + [{"role": "user", "content": user_text}])
+                history = result.to_input_list()
+                print(f"Agente: {_apply_calendar_guard(user_text, result.final_output or '')}")
+            except Exception as exc:
+                print(f"Agente: No se pudo completar la solicitud: {exc}")
+    except (EOFError, KeyboardInterrupt):
+        print("\nSesión finalizada.")

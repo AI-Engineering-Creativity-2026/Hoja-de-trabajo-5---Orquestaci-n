@@ -3,7 +3,7 @@ import sys
 from agents import Agent, function_tool
 from pydantic import BaseModel, Field
 from agents import handoff
-from shared.parachute import agent_model, agent_model_settings, faq_tool, run_agent, schedule_tool, weather_tool
+from shared.parachute import agent_model, agent_model_settings, faq_tool, run_agent, run_chat, schedule_tool, weather_tool
 
 MODEL = agent_model()
 SETTINGS = agent_model_settings()
@@ -40,4 +40,5 @@ calendar_agent.handoffs = [
 ]
 
 if __name__ == "__main__":
-    print(run_agent(intake_agent, " ".join(sys.argv[1:]) or input("Consulta: ")))
+    query = " ".join(sys.argv[1:])
+    run_chat(intake_agent) if not query else print(run_agent(intake_agent, query))

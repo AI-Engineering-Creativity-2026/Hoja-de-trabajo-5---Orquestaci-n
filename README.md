@@ -28,6 +28,16 @@ Para Groq se usa `openai/gpt-oss-20b`, que está disponible en el entorno de HDT
 
 También se puede ejecutar sin argumento y escribir la consulta interactiva. Las fechas deben expresarse como `YYYY-MM-DD` para que el agente pueda validarlas de manera determinista.
 
+Para abrir el chat multi-turno, ejecuta sin argumentos:
+
+```bash
+python centralizada.py
+python jerarquica.py
+python descentralizada.py
+```
+
+El historial se conserva durante la sesión; escribe `salir`, `exit` o `quit` para terminar. Con un argumento, el programa conserva el modo de consulta única.
+
 ## Entregables
 
 - Diagramas Mermaid: `diagramas/*.mmd`.
