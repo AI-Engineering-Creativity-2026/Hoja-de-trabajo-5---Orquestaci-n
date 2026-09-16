@@ -178,3 +178,31 @@ python probar_todos_casos.py --live
 ```
 
 El script de pruebas en vivo consume la API de Open-Meteo y puede tardar más que las pruebas unitarias.
+
+## Recursos visuales
+
+<p align="center">
+  <img src="assets/a1b3ca08-2d66-4a54-947d-67325b9a1f93.png" alt="Recurso visual" width="420">
+</p>
+
+<h1 align="center">🎵 RECOMENDACIÓN MUSICAL 🎵</h1>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=UsbRoaH6y-Q">
+    <img src="https://img.youtube.com/vi/UsbRoaH6y-Q/maxresdefault.jpg" alt="Escuchar recomendación musical en YouTube" width="640">
+  </a>
+</p>
+
+Haz clic en la miniatura para abrir el video en YouTube.
+
+### Kyafeet
+
+<p align="center">
+  <img src="assets/kyafeet.webp" alt="Kyafeet" width="520">
+</p>
+
+### Jiyufeet
+
+<p align="center">
+  <img src="assets/jiyufeet.webp" alt="Jiyufeet" width="520">
+</p>
